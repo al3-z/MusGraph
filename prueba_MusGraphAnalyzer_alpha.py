@@ -1,8 +1,10 @@
+#versión del 28 abr 2022, bajada de github
+
 import music21 as m21
 import copy
 score=m21.converter.parse('/Users/alberto/Documents/doc/partituras_doc/JSB-ArtOfFugue-I.mid')#NOTA: hay que quitar en el archivo .xml o .mxl, etc los pentagramas que sean de percusiones no afinadas
-inicio=9
-fin=12
+inicio=1
+fin=8
 titulo="J.S. Bach - The Art of Fugue, Contrapunctus I, mm.{}-{}".format(inicio,fin)
 #print("Haydn Cuarteto de Cuerdas op.74 no.1 en Do Mayor, III - Minueto")
 eventos=[]
@@ -11,7 +13,7 @@ eventos=[]
 acs=score.measures(inicio,fin).chordify() #si no se quiere todo el score, hay que poner score.measures(a,b).chordify()
 #acs.show()#hay una incongruencia entre el score original y el que genera music21. en el primer piano se recorre la primera figura.(esto aplica para el son de la noche para piano a 4 manos)
 for ac in acs.recurse().getElementsByClass('Chord'):
-    eventos.append([tuple(ac.normalOrder),float(ac.quarterLength)])#aquí se quitan las repeticiones de octavas en los acordes. #en vez de ac.normalOrder, podrían ponerse las clases de altura de modo ascendente, con tuple(sorted(set(ac.pitchClasses)))
+    eventos.append([tuple(sorted(set(ac.pitchClasses))),float(ac.quarterLength)])#aquí se quitan las repeticiones de octavas en los acordes.
 print("\n# eventos :", len(eventos))
 print(eventos)#aqui puede haber acordes repetidos. aqui habria que hacer las conexiones entre acordes y ritmos, antes de sumar las duraciones. la lista "eventos" se quedará intacta para poder contar ritmos (no sumar duraciones, lo cual se hará en la lista eventos2).
 found=set()
@@ -76,7 +78,7 @@ print("\n# clases de altura: ", len(notas)," : ", notas)
 for i in range(len(acsdifs)):
     intervalos_acorde=[]
     for j in range(len(acsdifs[i][0])-1):
-        intervalos_acorde.append((acsdifs[i][0][j+1]-acsdifs[i][0][j])%12) #se toman los intervalos consecutivos en el vector dado (por ejemplo, forma normal); podría también hacerse tomando todos los intervalos entre todas las alturas
+        intervalos_acorde.append((acsdifs[i][0][j+1]-acsdifs[i][0][j])%12)
     intervalos_acs.append([tuple(intervalos_acorde),acsdifs[i][1],acsdifs[i][2]])
     #se agrega la duración total del acorde al que pertenecen los intervalos y el num de ocurrencias
     #NOTA: otra opcion es usar la funcion de music21: vector de intervalos
@@ -621,7 +623,6 @@ for c in ciclos_acs:
 
 #for ciclo in ciclos: #esto imprime todos los ciclos (pueden ser muchos (en el caso del Graffiti 1 de Luna, hay mas de 633,000!!! (aunque en los Graffitis 2 y 3 son muchos menos!))) Hay que encontrar una manera de elegir los principales (por peso de aristas)
 if len(ciclos_acs)<5:
-    i=0
     for x in ciclos_acs:
         nx.draw_networkx(GAcs.subgraph(x[0]), node_color='deeppink')
         plt.title("Heaviest (by edges) basic chord cycle #{}".format(i+1))
@@ -629,7 +630,6 @@ if len(ciclos_acs)<5:
         plt.xlabel("\nCycle weight (sum of its edges' weights) / Total weight of basic cycles: {} / {}".format(x[1],peso_ciclos_acs))
         plt.tight_layout()
         plt.show()
-        i+=1
 else:
     for i in range(5):
         nx.draw_networkx(GAcs.subgraph(ciclos_acs[i][0]), node_color='deeppink')
